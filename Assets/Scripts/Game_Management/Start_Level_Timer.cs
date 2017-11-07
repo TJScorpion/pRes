@@ -52,7 +52,12 @@ public class Start_Level_Timer : MonoBehaviour {
 	public float millisec_timer = 0;
 	public bool count_end = false;
 
-    public float startTime;
+    float startTime;
+    float currentTime;
+    bool onlyOnce = false;
+
+    [SerializeField]
+    Pause_Menu paused;
 
 	//once brought into scene
 	void Awake()
@@ -62,11 +67,10 @@ public class Start_Level_Timer : MonoBehaviour {
 		} else {
 			Destroy (gameObject);
 		}
-
+        
 		player = GameObject.Find ("Player");
 		player.GetComponent<PlayerGamepad> ().enabled = false;
 		StartCoroutine("Countdown");
-	
 	}
 
 	public IEnumerator Countdown()
@@ -116,12 +120,27 @@ public class Start_Level_Timer : MonoBehaviour {
         }
     }
 
+	bool pause = false;
+
 	void Update()
 	{
 		if (count_end == true) {
 			DisplayTimer ();
 		}
 
+        if (Input.GetButtonDown("Controller_Start"))
+        {
+			if (!pause) {
+				Time.timeScale = 0;
+				pause = true;
+			} else {
+				Time.timeScale = 1;
+				pause = false;
+			}
+        }
+        
+        
+        
 
 	}
 

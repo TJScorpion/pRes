@@ -10,7 +10,7 @@ public class Checkpoint_Script : MonoBehaviour
     public bool PlayerCheck = false;
     public float pos1;
     public float pos2;
-    private Vector3[] EnemySpawnLoc = new Vector3[10];
+	private Vector3[] EnemySpawnLoc;
     public GameObject[] allEnemies;
 	public GameObject[] battleAreas;
     public GameObject ThePlayer;
@@ -19,7 +19,9 @@ public class Checkpoint_Script : MonoBehaviour
     {
 		battleAreas = GameObject.FindGameObjectsWithTag ("battleArea");
         allEnemies = GameObject.FindGameObjectsWithTag("Enemy"); // Finds all objects in the scene with the tag "enemy"
-        for (int i = 0; i < allEnemies.Length; i++) //go through all enemies currently on the map at the start of the game
+		EnemySpawnLoc = new Vector3 [allEnemies.Length];
+
+		for (int i = 0; i < allEnemies.Length; i++) //go through all enemies currently on the map at the start of the game
         {
             EnemySpawnLoc[i] = allEnemies[i].transform.position; //Set a list of Vectors "EnemySpawnLoc" to a list of the enemy's positions at the start of the map so it can be saved for respawning the enemy
             //print(EnemySpawnLoc[i]);
@@ -51,21 +53,29 @@ public class Checkpoint_Script : MonoBehaviour
         }
 		*/
 			if (ThePlayer.GetComponentInChildren<PlayerHealth> ().health <= 0 || ThePlayer.GetComponentInParent<PlayerGamepad> ().isPlayerDead () == true) {
+
+				ScoreSystem.Singleton_ScoreSystem.score_playerDeath ();
+
 				ThePlayer.transform.parent.position = SaveLoc; //Make the player respawn at the active checkpoint
 				if (pos1 >= pos2) { //Checks to see if the player is over a certain height
-					Debug.Log("fuckkceakc");
-					ThePlayer.GetComponent<PlayerHealth> ().Heal (); // Resets player health for when they die
+                                    //Debug.Log("fuckkceakc");
+
+                    for (int i = 0; i < allEnemies.Length; i++)
+                    {
+                        allEnemies[i].transform.position = EnemySpawnLoc[i]; //sets all enemies positions back to their originol positions for when the player is killed
+                        allEnemies[i].SetActive(true);
+                        allEnemies[i].GetComponent<BasicAI>().StartCoroutine("reset");
+                        print("Enemies Back home.");
+                        print(allEnemies[i]);
+                    }
+                    for (int i = 0; i < battleAreas.Length; i++)
+                    {
+                        battleAreas[i].GetComponent<BattleArea_End>().ResetWalls();
+                    }
+
+                    ThePlayer.GetComponent<PlayerHealth> ().Heal (); // Resets player health for when they die
 					ThePlayer.GetComponentInParent<PlayerGamepad> ().setPlayerDeath (false);//Sets PlayerDied to false when the player has respawned
-					for (int i = 0; i < allEnemies.Length; i++) {             
-						allEnemies [i].transform.position = EnemySpawnLoc [i]; //sets all enemies positions back to their originol positions for when the player is killed
-						allEnemies [i].SetActive (true);
-						allEnemies [i].GetComponent<BasicAI> ().reset ();
-						print ("Enemies Back home");
-						print (allEnemies [i]);
-					}
-					for (int i = 0; i < battleAreas.Length; i++) {
-						battleAreas [i].GetComponent<BattleArea_End> ().ResetWalls ();
-					}
+					
 				}
 				print ("Death Detected");
 			}
@@ -87,7 +97,7 @@ public class Checkpoint_Script : MonoBehaviour
 				}
                 CheckpointPrefab[i].GetComponent<Checkpoint_Script>().ActiveCheckPoint = false; // Sets any other active checkpoint to inactive
                 CheckpointPrefab[i].GetComponent<Checkpoint_Script>().SaveLoc = gameObject.transform.position; //Sets the respawn location(SaveLoc) to whichever checkpoint the player collided with last
-                SaveLoc.y += 15; //A buffer to make sure the player doesn't spawn within the floor
+               
                 pos2 = ThePlayer.transform.position.y; //gets the y position for when they enter the checkpoint
                 ActiveCheckPoint = true; //Sets the checkpoint that the player just collided with to the Active checkpoint and the platyer will only respawn there
                 print("Checkpoint");

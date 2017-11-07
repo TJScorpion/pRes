@@ -17,11 +17,19 @@ public class End_Level : MonoBehaviour {
 	public float end_seconds = 0;
 	public float end_millisecs = 0;
 
+    [SerializeField]
+    Start_Level_Timer timer;
+
 	bool finished = false;
 	bool paused = false;
 
+	public Text scoreText;
+	public Text timeText;
+
 	// Use this for initialization
 	void Awake () {
+
+		timer = GameObject.Find ("Start_Level").GetComponent<Start_Level_Timer>();
 
 		Button NextLevelButton = Next_Level.GetComponent<Button>();         		//Assigns the UI element to its script counterpart
 		Button RetryButton = Retry_Level.GetComponent<Button>();					//Assigns the UI element to its script counterpart
@@ -40,7 +48,7 @@ public class End_Level : MonoBehaviour {
 	void Update () {
 
 
-		if (Input.GetButtonDown("Controller_Start"))
+        /*if (Input.GetButtonDown("Controller_Start"))
 		{
 			Time.timeScale = Time.timeScale == 1 ? 0 : 1;
 			if (!paused) {
@@ -54,24 +62,27 @@ public class End_Level : MonoBehaviour {
 				player.GetComponent<PlayerGamepad> ().enabled = true;
 				paused = false;
 			}
-		}
-		
-	}
+		}*/
 
-	//used to see when the player enters the exit gate
-	void OnTriggerEnter(Collider col)
+    }
+
+    //used to see when the player enters the exit gate
+    void OnTriggerEnter(Collider col)
 	{
 		if (col.gameObject.tag == "Player") 
 		{
 			Finish_Level ();
 			end_minutes = Start_Level_Timer.Instance.minutes_timer;
+
 			end_seconds = Start_Level_Timer.Instance.seconds_timer;
 			end_millisecs = Start_Level_Timer.Instance.millisec_timer;
+			timeText.text = "Time: " + end_minutes + ":" + end_seconds + ":" + end_millisecs;
+			scoreText.text = "Score: " + ScoreSystem.Singleton_ScoreSystem.score_getFinalScore ();
 			float[] finishTime = new float[3];
 			finishTime[0] = end_minutes;
 			finishTime[1] = end_seconds;
 			finishTime[2] = end_millisecs;
-			//ScoreSystem.Singleton_ScoreSystem.getCompletionTime (finishTime);
+			ScoreSystem.Singleton_ScoreSystem.getCompletionTime (finishTime);
 			finished = true;
 		}
 	}
@@ -79,9 +90,11 @@ public class End_Level : MonoBehaviour {
 	//used to activate end level menu
 	void Finish_Level()
 	{
+        timer.StopAllCoroutines();
 		Finish_Menu.SetActive (true);
-		Next_Level.Select ();
+		Next_Level.Select();
 		player.GetComponent<PlayerGamepad> ().enabled = false;
+        
 	}
 
 	//takes the player to the next level on selection
